@@ -18,14 +18,14 @@ const createGame = async (req, res) => {
         return res.status(401).send('You must be logged in to create a game.')
     }
 
-    const { name, maxPlayers, maxBuyIn, bigBlind, smallBlind, numBots, botLevel } = req.body
+    const { name, maxPlayers, maxBuyIn, userBuyIn, bigBlind, smallBlind, numBots, botLevel } = req.body
 
     const duplicateName = await Game.findOne({ name })
     if (duplicateName) {
         return res.status(400).send('The name of the game must be unique.')
     }
 
-    user.chips = maxBuyIn
+    user.chips = userBuyIn
 
     let game = {
         players: [user],
