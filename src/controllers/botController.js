@@ -1,4 +1,6 @@
 const io = require('socket.io-client');
+const pokerAI = require('../service/pokerAIService');
+
 const MIN_WAIT_TIME_AT_START_MILLISECONDS = 4000;
 const PLAY_DELAY_MILLISECONDS = 2000;
 
@@ -241,7 +243,13 @@ class BotPlayer {
 			playOptions.push(moveEnum.RAISE);
 		}
 
-		const moveDetails = this.localPlayLogic(this.game, this.hand, playOptions, moveEnum);
+		let moveDetails;
+		if (await pokerAI.ping()) {
+			console.log(`[${this.username}] asking remote server for moves`);
+			moveDetails = await pokerAI.getAIMove(this.level, this.game, this.hand, playOptions, this.username);
+		} else {
+			moveDetails = this.localPlayLogic(this.game, this.hand, playOptions, moveEnum);
+		}
 		let retObj = botMoveFunc(this, this.game._id, moveDetails.move, moveDetails.raiseAmount)
 		console.info(`[${this.username}] Executed ${moveDetails.move} (${moveDetails.raiseAmount}). hand: ${this.hand} [game has: ${this.game.hand}].\n\t\tReceived: ${JSON.stringify(retObj)}`);
 	}
