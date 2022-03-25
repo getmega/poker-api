@@ -5,18 +5,18 @@ const MIN_WAIT_TIME_AT_START_MILLISECONDS = 4000;
 const PLAY_DELAY_MILLISECONDS = 2000;
 
 // this needs to be in sync with GameSettingsDialog.vue in the client code
-const botLevelOptions = Object.freeze({
+const botVariantOptions = Object.freeze({
 	EASY: 'Easy',
 	MEDIUM: 'Medium',
 	HARD: 'Hard'
 })
 
 class BotPlayer {
-	constructor(botName, botLevel, gameObj) {
+	constructor(botName, botVariant, gameObj) {
 		this._id = botName;
 		this.username = botName;
 		this.name = botName;
-		this.level = botLevel;
+		this.variant = botVariant;
 		this.game = gameObj;
 		this.chips = 0;
 		this.socketId = "";
@@ -87,8 +87,17 @@ class BotPlayer {
 		}
 	}
 
-	buyIn = () => {
-		const buyInAmount = this.game.maxBuyIn; // basic buy in
+	buyIn = async () => {
+		let buyInAmount;
+		try {
+			console.debug(`[${this.username}] asking remote server for buy-in`);
+			buyInAmount = await pokerAI.getAIBuyIn(this.variant, this.game, this.username);
+		}
+		catch (e) {
+			console.error(`[${this.username}] Caught error which contacting Python server`, e);
+			buyInAmount = this.game.maxBuyIn; // basic buy in
+		}
+		console.info(`[${this.username}] Buying in with ${buyInAmount}`);
 		return buyInAmount
 	}
 
@@ -175,11 +184,11 @@ class BotPlayer {
 		const moveDetails = (move, raiseAmount = 0) => ({
 			move, raiseAmount
 		})
-		switch (this.level) {
-			case botLevelOptions.EASY:
+		switch (this.variant) {
+			case botVariantOptions.EASY:
 				// this stupid bot always folds!
 				return moveDetails(moveEnum.FOLD);
-			case botLevelOptions.MEDIUM:
+			case botVariantOptions.MEDIUM:
 				const moveIndex = Math.floor(Math.random() * playOptions.length);
 				const move = playOptions[moveIndex];
 				if (move != moveEnum.RAISE) {
@@ -190,7 +199,7 @@ class BotPlayer {
 					const raiseAmount = Math.ceil(Math.random() * raiseLimit);
 					return moveDetails(move, raiseAmount);
 				}
-			case botLevelOptions.HARD:
+			case botVariantOptions.HARD:
 				if (!hand || hand.length == 0) {
 					return moveDetails(moveEnum.FOLD); // folds if no information is available
 				}
@@ -244,10 +253,12 @@ class BotPlayer {
 		}
 
 		let moveDetails;
-		if (await pokerAI.ping()) {
+		try {
 			console.log(`[${this.username}] asking remote server for moves`);
-			moveDetails = await pokerAI.getAIMove(this.level, this.game, this.hand, playOptions, this.username);
-		} else {
+			moveDetails = await pokerAI.getAIMove(this.variant, this.game, this.hand, playOptions, this.username);
+		}
+		catch (e) {
+			console.error(`[${this.username}] Could not get move from AI server. Playing local logic...`, e);
 			moveDetails = this.localPlayLogic(this.game, this.hand, playOptions, moveEnum);
 		}
 		let retObj = botMoveFunc(this, this.game._id, moveDetails.move, moveDetails.raiseAmount)
