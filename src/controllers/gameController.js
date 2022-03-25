@@ -106,7 +106,7 @@ const userJoinTable = async (req, res) => {
 
 const botJoinTable = async (botPlayer, gameId) => {
     await botPlayer.initializeSocket(botMove, moveEnum);
-    buyIn = botPlayer.buyIn();
+    buyIn = await botPlayer.buyIn();
 
     function checkSocketIdExists(botPlayer) {
         console.log(`[${botPlayer.username}] socket-id=${botPlayer.socketId}`);
