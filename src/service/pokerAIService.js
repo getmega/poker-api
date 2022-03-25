@@ -20,8 +20,8 @@ const ping = async () => {
 		})
 }
 
-const getAIMove = async (level, game, hand, playOptions, botId) => {
-	return await axios.post(`${FLASK_ENDPOINT}bot/${level}`, { botId, game, hand, playOptions })
+const getAIMove = async (level, game, hand, playOptions, botUsername) => {
+	return await axios.post(`${FLASK_ENDPOINT}bot/${level}`, { botId: botUsername, game, hand, playOptions })
 		.then((response) => {
 			return response.data;
 		})
