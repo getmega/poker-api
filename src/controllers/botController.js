@@ -4,7 +4,6 @@ const pokerAI = require('../service/pokerAIService');
 const MIN_WAIT_TIME_AT_START_MILLISECONDS = 4000;
 const PLAY_DELAY_MILLISECONDS = 2000;
 
-// this needs to be in sync with GameSettingsDialog.vue in the client code
 const botVariantOptions = Object.freeze({
 	EASY: 'Easy',
 	MEDIUM: 'Medium',
@@ -267,5 +266,6 @@ class BotPlayer {
 }
 
 module.exports = {
-	BotPlayer
+	BotPlayer,
+	botVariantOptions
 }

@@ -1,6 +1,7 @@
 const { Game, validate } = require('../models/Game')
 const { User } = require('../models/User')
-const { BotPlayer } = require('./botController')
+const { BotPlayer, botVariantOptions } = require('./botController')
+const { getVariants } = require('../service/pokerAIService')
 const assert = require('assert')
 const {
     getLargestBet,
@@ -18,7 +19,7 @@ const createGame = async (req, res) => {
         return res.status(401).send('You must be logged in to create a game.')
     }
 
-    const { name, maxPlayers, maxBuyIn, userBuyIn, bigBlind, smallBlind, numBots, botLevel } = req.body
+    const { name, maxPlayers, maxBuyIn, userBuyIn, bigBlind, smallBlind, numBots } = req.body
 
     const duplicateName = await Game.findOne({ name })
     if (duplicateName) {
@@ -44,12 +45,22 @@ const createGame = async (req, res) => {
 
     game = new Game(game) // creates a Mongoose object to save.
 
-    // create numBots bots of botLevel level
+    // get the variants for the experiment
+    let variants;
+    try {
+        console.debug(`[CreateGame] Getting variants for ${numBots} AI bots`);
+        variants = await getVariants(numBots);
+    } catch (e) {
+        console.error(`[CreateGame] Could not fetch variants from API. Providing defaults...`);
+        variants = Array(numBots).fill(Object.values(botVariantOptions)[0]) // just filling the first value for every bot
+    }
+
+    // create numBots bots according the variants
     let botPlayers = []
     const botGameObj = JSON.parse(JSON.stringify(game));
     botGameObj.players = botGameObj.players.map(p => removeHand(p));
     for (let i = 0; i < numBots; i++) {
-        const botPlayer = new BotPlayer(`megabot_${i}`, botLevel, botGameObj);
+        const botPlayer = new BotPlayer(`megabot_${i}`, variants[i], botGameObj);
         botPlayers.push(botPlayer);
     }
 

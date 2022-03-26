@@ -20,6 +20,17 @@ const ping = async () => {
 		})
 }
 
+const getVariants = async (numBots) => {
+	return await axios.get(`${FLASK_ENDPOINT}variants/${numBots}`)
+		.then((response) => {
+			return response.data;
+		})
+		.catch(err => {
+			console.error(`[pokerAIService] getVariants error`, err);
+			throw err;
+		})
+}
+
 const getAIBuyIn = async (variant, game, botUsername) => {
 	return await axios.post(`${FLASK_ENDPOINT}buyIn/${variant}`, { botId: botUsername, game })
 		.then((response) => {
@@ -45,6 +56,7 @@ const getAIMove = async (variant, game, hand, playOptions, botUsername) => {
 
 module.exports = {
 	ping,
+	getVariants,
 	getAIBuyIn,
 	getAIMove,
 }
