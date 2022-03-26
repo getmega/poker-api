@@ -117,13 +117,13 @@ const userJoinTable = async (req, res) => {
 
 const botJoinTable = async (botPlayer, gameId) => {
     await botPlayer.initializeSocket(botMove, moveEnum);
-    buyIn = await botPlayer.buyIn();
-
-    function checkSocketIdExists(botPlayer) {
+    async function checkSocketIdExists(botPlayer) {
         console.log(`[${botPlayer.username}] socket-id=${botPlayer.socketId}`);
         if (!botPlayer.socketId || typeof botPlayer.socketId != 'string' || botPlayer.socketId.length == 0) {
             setTimeout(checkSocketIdExists, 1000, botPlayer);
         } else {
+            buyIn = await botPlayer.buyIn();
+
             console.log(`[${botPlayer.username}] checkSocketIdExists clearing. Socket-id: ${botPlayer.socketId}`)
             joinTable(botPlayer, gameId, buyIn, botPlayer.socketId);
         }
