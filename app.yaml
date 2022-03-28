@@ -1,3 +1,19 @@
 runtime: nodejs14
 
 service: poker-webui-api
+
+instance_class: F2
+
+handlers:
+  - url: .*
+    script: auto
+    secure: always
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 2
+  min_idle_instances: 1
+  max_idle_instances: 2
+  target_cpu_utilization: 0.75
+  max_concurrent_requests: 30
+  max_pending_latency: 15s
