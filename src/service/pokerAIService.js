@@ -20,19 +20,43 @@ const ping = async () => {
 		})
 }
 
-const getAIMove = async (level, game, hand, playOptions, botUsername) => {
-	return await axios.post(`${FLASK_ENDPOINT}bot/${level}`, { botId: botUsername, game, hand, playOptions })
+const getVariants = async (numBots) => {
+	return await axios.get(`${FLASK_ENDPOINT}variants/${numBots}`)
+		.then((response) => {
+			return response.data;
+		})
+		.catch(err => {
+			console.error(`[pokerAIService] getVariants error`, err);
+			throw err;
+		})
+}
+
+const getAIBuyIn = async (variant, game, botUsername) => {
+	return await axios.post(`${FLASK_ENDPOINT}buyIn/${variant}`, { botId: botUsername, game })
 		.then((response) => {
 			return response.data;
 		})
 		.catch((err) => {
-			console.error(`[pokerAIService] getAIMove error`, err)
-			throw err
+			console.error(`[pokerAIService] getAIBuyIn error`, err);
+			throw err;
+		})
+}
+
+const getAIMove = async (variant, game, hand, playOptions, botUsername) => {
+	return await axios.post(`${FLASK_ENDPOINT}bot/${variant}`, { botId: botUsername, game, hand, playOptions })
+		.then((response) => {
+			return response.data;
+		})
+		.catch((err) => {
+			console.error(`[pokerAIService] getAIMove error`, err);
+			throw err;
 		})
 
 }
 
 module.exports = {
 	ping,
+	getVariants,
+	getAIBuyIn,
 	getAIMove,
 }
