@@ -47,19 +47,18 @@ const createGame = async (req, res) => {
 
     // get the variants for the experiment
     let variants
-    try {
-        console.debug(`[CreateGame] Getting variants for ${numBots} AI bots`)
-        variants = await getVariants(numBots)
-    } catch (e) {
-        console.error(`[CreateGame] Could not fetch variants from API. Providing defaults...`)
-        variants = Array(numBots).fill(Object.values(botVariantOptions)[0]) // just filling the first value for every bot
-    }
+    console.debug(`[CreateGame] Getting variants for ${numBots} AI bots`)
+    variants = await getVariants(game.numBots)
+        .catch(e => {
+            console.error(`[CreateGame] Could not fetch variants from API. Providing defaults...`, e.message)
+            return Array(game.numBots).fill(Object.values(botVariantOptions)[0]) // just filling the first value for every bot
+        })
 
     // create numBots bots according the variants
     const botPlayers = []
     const botGameObj = JSON.parse(JSON.stringify(game))
     botGameObj.players = botGameObj.players.map(p => removeHand(p))
-    for (let i = 0; i < numBots; i++) {
+    for (let i = 0; i < game.numBots; i++) {
         const botPlayer = new BotPlayer(`megabot_${i}`, variants[i], botGameObj)
         botPlayers.push(botPlayer)
     }
@@ -163,7 +162,7 @@ const joinTable = async (user, gameId, buyIn, socketId, res) => {
         user.socketId = socketId
         user.chips = buyIn
 
-        if (parseInt(game.numBots) == 0) {
+        if (game.numBots == 0) {
             if (game.players.length === 1) {
                 game.players.push(user)
                 game = startNextRound(game)
@@ -171,7 +170,7 @@ const joinTable = async (user, gameId, buyIn, socketId, res) => {
                 game.playersWaiting.push(user)
             }
         } else {
-            const humanPlayersCount = game.players.length - parseInt(game.numBots)
+            const humanPlayersCount = game.players.length - game.numBots
             if (humanPlayersCount < 0) {
                 // this is required to make sure that all bots are able to join the game
                 game.players.push(user)
