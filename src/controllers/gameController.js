@@ -46,13 +46,11 @@ const createGame = async (req, res) => {
     game = new Game(game) // creates a Mongoose object to save.
 
     // get the variants for the experiment
-    let variants
     console.debug(`[CreateGame] Getting variants for ${numBots} AI bots`)
-    variants = await getVariants(game.numBots)
-        .catch(e => {
-            console.error(`[CreateGame] Could not fetch variants from API. Providing defaults...`, e.message)
-            return Array(game.numBots).fill(Object.values(botVariantOptions)[0]) // just filling the first value for every bot
-        })
+    const variants = await getVariants(game.numBots).catch(e => {
+        console.error(`[CreateGame] Could not fetch variants from API. Providing defaults...`, e.message)
+        return Array(game.numBots).fill(Object.values(botVariantOptions)[0]) // just filling the first value for every bot
+    })
 
     // create numBots bots according the variants
     const botPlayers = []

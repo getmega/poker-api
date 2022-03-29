@@ -89,13 +89,11 @@ class BotPlayer {
     }
 
     async buyIn() {
-        let buyInAmount
         console.debug(`[${this.username}] asking remote server for buy-in`)
-        buyInAmount = await pokerAI.getAIBuyIn(this.variant, this.game, this.username)
-            .catch(e => {
-                console.error(`[${this.username}] Caught error which contacting Python server`, e.message)
-                return this.game.maxBuyIn // basic buy in
-            })
+        const buyInAmount = await pokerAI.getAIBuyIn(this.variant, this.game, this.username).catch(e => {
+            console.error(`[${this.username}] Caught error which contacting Python server`, e.message)
+            return this.game.maxBuyIn // basic buy in
+        })
         console.info(`[${this.username}] Buying in with ${buyInAmount}`)
         return buyInAmount
     }
@@ -259,18 +257,21 @@ class BotPlayer {
             playOptions.push(moveEnum.RAISE)
         }
 
-        let moveDetails
         console.log(`[${botPlayer.username}] asking remote server for moves`)
-        moveDetails = await pokerAI.getAIMove(
-            botPlayer.variant,
-            botPlayer.game,
-            botPlayer.hand,
-            playOptions,
-            botPlayer.username
-        )
+        const moveDetails = await pokerAI
+            .getAIMove(botPlayer.variant, botPlayer.game, botPlayer.hand, playOptions, botPlayer.username)
             .catch(e => {
-                console.error(`[${botPlayer.username}] Could not get move from AI server. Playing local logic...`, e.message)
-                return botPlayer.localPlayLogic(botPlayer.variant, botPlayer.game, botPlayer.hand, playOptions, moveEnum)
+                console.error(
+                    `[${botPlayer.username}] Could not get move from AI server. Playing local logic...`,
+                    e.message
+                )
+                return botPlayer.localPlayLogic(
+                    botPlayer.variant,
+                    botPlayer.game,
+                    botPlayer.hand,
+                    playOptions,
+                    moveEnum
+                )
             })
 
         const retObj = botMoveFunc(botPlayer, botPlayer.game._id, moveDetails.move, moveDetails.raiseAmount)
