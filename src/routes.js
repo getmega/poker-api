@@ -10,7 +10,7 @@ const {
 } = require('./controllers/gameController')
 const auth = require('./middleware/auth')
 
-module.exports = function (app) {
+module.exports = function(app) {
     app.post('/users', createUser)
     app.post('/login', loginUser)
     app.get('/me', auth, getUser)

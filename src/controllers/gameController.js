@@ -35,7 +35,7 @@ const createGame = async (req, res) => {
         maxBuyIn: parseInt(maxBuyIn),
         bigBlind: parseInt(bigBlind),
         smallBlind: parseInt(smallBlind),
-        numBots: parseInt(numBots),
+        numBots: parseInt(numBots)
     }
     const { error } = validate(game)
 
@@ -46,34 +46,34 @@ const createGame = async (req, res) => {
     game = new Game(game) // creates a Mongoose object to save.
 
     // get the variants for the experiment
-    let variants;
+    let variants
     try {
-        console.debug(`[CreateGame] Getting variants for ${numBots} AI bots`);
-        variants = await getVariants(numBots);
+        console.debug(`[CreateGame] Getting variants for ${numBots} AI bots`)
+        variants = await getVariants(numBots)
     } catch (e) {
-        console.error(`[CreateGame] Could not fetch variants from API. Providing defaults...`);
+        console.error(`[CreateGame] Could not fetch variants from API. Providing defaults...`)
         variants = Array(numBots).fill(Object.values(botVariantOptions)[0]) // just filling the first value for every bot
     }
 
     // create numBots bots according the variants
-    let botPlayers = []
-    const botGameObj = JSON.parse(JSON.stringify(game));
-    botGameObj.players = botGameObj.players.map(p => removeHand(p));
+    const botPlayers = []
+    const botGameObj = JSON.parse(JSON.stringify(game))
+    botGameObj.players = botGameObj.players.map(p => removeHand(p))
     for (let i = 0; i < numBots; i++) {
-        const botPlayer = new BotPlayer(`megabot_${i}`, variants[i], botGameObj);
-        botPlayers.push(botPlayer);
+        const botPlayer = new BotPlayer(`megabot_${i}`, variants[i], botGameObj)
+        botPlayers.push(botPlayer)
     }
 
     game = await game.save() // returns the new object from Mongo with id.
 
     for (const botPlayer of botPlayers) {
         try {
-            botJoinTable(botPlayer, game._id);
+            botJoinTable(botPlayer, game._id)
         } catch (e) {
-            console.error(`[${botPlayer.username}] botJoinTable error: ${e}`);
+            console.error(`[${botPlayer.username}] botJoinTable error: ${e}`)
         }
     }
-    return res.send(game);
+    return res.send(game)
 }
 
 const getGame = async (req, res) => {
@@ -102,40 +102,40 @@ const userJoinTable = async (req, res) => {
         return res.status(401).send('You must be logged in to join a table.')
     }
 
-    const gameId = req.params.id;
+    const gameId = req.params.id
 
-    const { buyIn, socketId } = req.body;
+    const { buyIn, socketId } = req.body
 
     try {
-        joinTable(user, gameId, buyIn, socketId);
-        return res.status(200).send();
+        joinTable(user, gameId, buyIn, socketId)
+        return res.status(200).send()
     } catch (e) {
-        console.error(e);
-        return res.status(500).send('Something went wrong.');
+        console.error(e)
+        return res.status(500).send('Something went wrong.')
     }
 }
 
 const botJoinTable = async (botPlayer, gameId) => {
-    await botPlayer.initializeSocket(botMove, moveEnum);
+    await botPlayer.initializeSocket(botMove, moveEnum)
     async function checkSocketIdExists(botPlayer) {
-        console.log(`[${botPlayer.username}] socket-id=${botPlayer.socketId}`);
+        console.log(`[${botPlayer.username}] socket-id=${botPlayer.socketId}`)
         if (!botPlayer.socketId || typeof botPlayer.socketId != 'string' || botPlayer.socketId.length == 0) {
-            setTimeout(checkSocketIdExists, 1000, botPlayer);
+            setTimeout(checkSocketIdExists, 1000, botPlayer)
         } else {
-            buyIn = await botPlayer.buyIn();
+            buyIn = await botPlayer.buyIn()
 
             console.log(`[${botPlayer.username}] checkSocketIdExists clearing. Socket-id: ${botPlayer.socketId}`)
-            joinTable(botPlayer, gameId, buyIn, botPlayer.socketId);
+            joinTable(botPlayer, gameId, buyIn, botPlayer.socketId)
         }
     }
 
-    checkSocketIdExists(botPlayer);
+    checkSocketIdExists(botPlayer)
 }
 
 const joinTable = async (user, gameId, buyIn, socketId, res) => {
-    const gameTxnSession = await Game.startSession();
+    const gameTxnSession = await Game.startSession()
     await gameTxnSession.withTransaction(async () => {
-        let game = await Game.findById(gameId).session(gameTxnSession);
+        let game = await Game.findById(gameId).session(gameTxnSession)
         if (!game) {
             return res.status(404).send('Game not found.')
         }
@@ -171,24 +171,24 @@ const joinTable = async (user, gameId, buyIn, socketId, res) => {
                 game.playersWaiting.push(user)
             }
         } else {
-            const humanPlayersCount = game.players.length - parseInt(game.numBots);
+            const humanPlayersCount = game.players.length - parseInt(game.numBots)
             if (humanPlayersCount < 0) {
                 // this is required to make sure that all bots are able to join the game
-                game.players.push(user);
+                game.players.push(user)
             } else if (humanPlayersCount == 0) {
-                game.players.push(user);
-                game = startNextRound(game);
+                game.players.push(user)
+                game = startNextRound(game)
             } else {
-                game.playersWaiting.push(user);
+                game.playersWaiting.push(user)
             }
         }
-        console.debug(`[joinTable] player ${user.username} joined with socket-id ${user.socketId}`);
+        console.debug(`[joinTable] player ${user.username} joined with socket-id ${user.socketId}`)
 
         game = await game.save()
         updateAllUsers(game)
-    });
+    })
 
-    gameTxnSession.endSession();
+    gameTxnSession.endSession()
     return
 }
 
@@ -198,10 +198,10 @@ const leaveTable = async (req, res) => {
         return res.status(401).send('You must be logged in to leave a table.')
     }
 
-    let returnObj;
-    const gameTxnSession = await Game.startSession();
+    let returnObj
+    const gameTxnSession = await Game.startSession()
     await gameTxnSession.withTransaction(async () => {
-        let game = await Game.findById(req.params.id).session(gameTxnSession);
+        let game = await Game.findById(req.params.id).session(gameTxnSession)
         if (!game) {
             returnObj = res.status(404).send('Game not found.')
         }
@@ -214,19 +214,19 @@ const leaveTable = async (req, res) => {
 
                 game = await game.save()
                 updateAllUsers(game)
-                returnObj = res.status(200).send();
-                return;
+                returnObj = res.status(200).send()
+                return
             }
-            returnObj = res.status(400).send('The requested user is not sitting at the table.');
-            return;
+            returnObj = res.status(400).send('The requested user is not sitting at the table.')
+            return
         }
 
         if (game.players.length - game.numBots <= 1) {
-            await Game.deleteOne({ _id: req.params.id }).session(gameTxnSession);
+            await Game.deleteOne({ _id: req.params.id }).session(gameTxnSession)
 
             // Any empty game object as the 2nd emit parameter informs clients that the game has been deleted.
-            returnObj = io.in(game._id).emit('gameUpdate');
-            return;
+            returnObj = io.in(game._id).emit('gameUpdate')
+            return
         }
 
         const player = game.players[index]
@@ -260,40 +260,40 @@ const leaveTable = async (req, res) => {
         try {
             game = await game.save()
             updateAllUsers(game)
-            returnObj = res.status(200).send();
-            return;
+            returnObj = res.status(200).send()
+            return
         } catch (e) {
-            console.error(e);
-            returnObj = res.status(500).send('Something went wrong.');
-            return;
+            console.error(e)
+            returnObj = res.status(500).send('Something went wrong.')
+            return
         }
     })
 
-    gameTxnSession.endSession();
-    return returnObj;
+    gameTxnSession.endSession()
+    return returnObj
 }
 
 const call = async (user, gameId) => {
-    let returnObj;
-    const gameTxnSession = await Game.startSession();
+    let returnObj
+    const gameTxnSession = await Game.startSession()
     await gameTxnSession.withTransaction(async () => {
-        let game = await Game.findById(gameId).session(gameTxnSession);
+        let game = await Game.findById(gameId).session(gameTxnSession)
         if (!game) {
-            returnObj = [404, 'Game not found.'];
-            return;
+            returnObj = [404, 'Game not found.']
+            return
         }
 
         if (user._id === game.lastToRaiseId) {
-            returnObj = [400, 'Cannot call your own raise.'];
-            return;
+            returnObj = [400, 'Cannot call your own raise.']
+            return
         }
 
         const playerIndex = game.players.findIndex(player => player._id.toString() === user._id.toString())
         const player = game.players[playerIndex]
 
         if (!player.isTurn) {
-            returnObj = [400, 'You cannot call out of turn.'];
-            return;
+            returnObj = [400, 'You cannot call out of turn.']
+            return
         }
 
         const largestBet = getLargestBet(game)
@@ -326,29 +326,29 @@ const call = async (user, gameId) => {
         game = await game.save()
 
         updateAllUsers(game)
-        returnObj = [200, null];
+        returnObj = [200, null]
     })
 
-    gameTxnSession.endSession();
-    return returnObj;
+    gameTxnSession.endSession()
+    return returnObj
 }
 
 const check = async (user, gameId) => {
-    let returnObj;
-    const gameTxnSession = await Game.startSession();
+    let returnObj
+    const gameTxnSession = await Game.startSession()
     await gameTxnSession.withTransaction(async () => {
-        let game = await Game.findById(gameId).session(gameTxnSession);
+        let game = await Game.findById(gameId).session(gameTxnSession)
         if (!game) {
-            returnObj = [404, 'Game not found.'];
-            return;
+            returnObj = [404, 'Game not found.']
+            return
         }
 
         const playerIndex = game.players.findIndex(player => player._id.toString() === user._id.toString())
         const player = game.players[playerIndex]
 
         if (!player.isTurn) {
-            returnObj = [400, 'You cannot check out of turn.'];
-            return;
+            returnObj = [400, 'You cannot check out of turn.']
+            return
         }
 
         const largestBet = getLargestBet(game)
@@ -357,7 +357,7 @@ const check = async (user, gameId) => {
 
         if (largestBet !== 0 && (!currentBet || currentBet.amount !== largestBet)) {
             returnObj = [400, 'Cannot check when your bet does not equal the largest bet.']
-            return;
+            return
         }
 
         player.lastAction = 'Check'
@@ -367,34 +367,34 @@ const check = async (user, gameId) => {
         game = await game.save()
 
         updateAllUsers(game)
-        returnObj = [200, null];
+        returnObj = [200, null]
     })
 
-    gameTxnSession.endSession();
-    return returnObj;
+    gameTxnSession.endSession()
+    return returnObj
 }
 
 const fold = async (user, gameId) => {
-    let returnObj;
-    const gameTxnSession = await Game.startSession();
+    let returnObj
+    const gameTxnSession = await Game.startSession()
     await gameTxnSession.withTransaction(async () => {
-        let game = await Game.findById(gameId).session(gameTxnSession);
+        let game = await Game.findById(gameId).session(gameTxnSession)
         if (!game) {
-            returnObj = [404, 'Game not found.'];
-            return;
+            returnObj = [404, 'Game not found.']
+            return
         }
 
         const playerIndex = game.players.findIndex(player => player._id.toString() === user._id.toString())
         const player = game.players[playerIndex]
 
         if (!player.isTurn) {
-            returnObj = [400, 'You cannot fold out of turn.'];
-            return;
+            returnObj = [400, 'You cannot fold out of turn.']
+            return
         }
 
         if (!player.hand) {
-            returnObj = [400, 'You cannot fold again.'];
-            return;
+            returnObj = [400, 'You cannot fold again.']
+            return
         }
 
         player.lastAction = 'Fold'
@@ -410,29 +410,29 @@ const fold = async (user, gameId) => {
         game = await game.save()
 
         updateAllUsers(game)
-        returnObj = [200, null];
+        returnObj = [200, null]
     })
 
-    gameTxnSession.endSession();
-    return returnObj;
+    gameTxnSession.endSession()
+    return returnObj
 }
 
 const raise = async (user, gameId, raiseAmount) => {
-    let returnObj;
-    const gameTxnSession = await Game.startSession();
+    let returnObj
+    const gameTxnSession = await Game.startSession()
     await gameTxnSession.withTransaction(async () => {
-        let game = await Game.findById(gameId).session(gameTxnSession);
+        let game = await Game.findById(gameId).session(gameTxnSession)
         if (!game) {
-            returnObj = [404, 'Game not found.'];
-            return;
+            returnObj = [404, 'Game not found.']
+            return
         }
 
         const playerIndex = game.players.findIndex(player => player._id.toString() === user._id.toString())
         const player = game.players[playerIndex]
 
         if (player._id === game.lastToRaiseId) {
-            returnObj = [400, 'Cannot raise again when you were the last player to raise.'];
-            return;
+            returnObj = [400, 'Cannot raise again when you were the last player to raise.']
+            return
         }
 
         const largestBet = getLargestBet(game)
@@ -442,8 +442,8 @@ const raise = async (user, gameId, raiseAmount) => {
         const totalBet = amountToCall + raiseAmount
 
         if (player.chips < totalBet) {
-            returnObj = [400, 'Cannot raise more chips than what you have left.'];
-            return;
+            returnObj = [400, 'Cannot raise more chips than what you have left.']
+            return
         }
 
         if (currentBet) {
@@ -474,61 +474,61 @@ const raise = async (user, gameId, raiseAmount) => {
         returnObj = [200, null]
     })
 
-    gameTxnSession.endSession();
-    return returnObj;
+    gameTxnSession.endSession()
+    return returnObj
 }
 
 const moveEnum = Object.freeze({
     FOLD: 'fold',
     CHECK: 'check',
     CALL: 'call',
-    RAISE: 'raise',
+    RAISE: 'raise'
 })
 
 const moveToFuncMap = {
-    'fold': fold,
-    'check': check,
-    'call': call,
-    'raise': raise,
+    fold: fold,
+    check: check,
+    call: call,
+    raise: raise
 }
 
 const botMove = async (botPlayer, gameId, move, raiseAmount = 0) => {
-    assert(Object.values(moveEnum).includes(move));
-    const moveFunc = moveToFuncMap[move];
+    assert(Object.values(moveEnum).includes(move))
+    const moveFunc = moveToFuncMap[move]
     try {
         if (move == moveEnum.RAISE) {
             if (!raiseAmount || typeof raiseAmount !== 'number') {
-                const errorMsg = 'Raise must be a number greater than 0.';
-                console.error(errorMsg);
-                return errorMsg;
+                const errorMsg = 'Raise must be a number greater than 0.'
+                console.error(errorMsg)
+                return errorMsg
             }
-            const [_, payload] = await moveFunc(botPlayer, gameId, raiseAmount);
+            const payload = await moveFunc(botPlayer, gameId, raiseAmount)[1]
             if (payload) {
-                console.error(payload);
+                console.error(payload)
             }
             return payload
         } else {
-            const [_, payload] = await moveFunc(botPlayer, gameId);
+            const payload = await moveFunc(botPlayer, gameId)[1]
             if (payload) {
-                console.error(`[${botPlayer.username}] move (${move}) received this error: ${payload}`);
+                console.error(`[${botPlayer.username}] move (${move}) received this error: ${payload}`)
             }
             return payload
         }
     } catch (e) {
-        console.error(e);
-        return 'Something went wrong.';
+        console.error(e)
+        return 'Something went wrong.'
     }
 }
 
-const userMove = (move) => async (req, res) => {
-    assert(Object.values(moveEnum).includes(move));
-    const moveFunc = moveToFuncMap[move];
+const userMove = move => async (req, res) => {
+    assert(Object.values(moveEnum).includes(move))
+    const moveFunc = moveToFuncMap[move]
     const user = await User.findById(req.user._id).select('-password')
     if (!user) {
         return res.status(401).send('You must be logged in to act.')
     }
 
-    const gameId = req.params.id;
+    const gameId = req.params.id
 
     try {
         if (move == moveEnum.RAISE) {
@@ -536,14 +536,14 @@ const userMove = (move) => async (req, res) => {
             if (!raiseAmount || typeof raiseAmount !== 'number') {
                 return res.status(400).send('Raise must be a number greater than 0.')
             }
-            const [statusCode, payload] = await moveFunc(user, gameId, raiseAmount);
-            return res.status(statusCode).send(payload);
+            const [statusCode, payload] = await moveFunc(user, gameId, raiseAmount)
+            return res.status(statusCode).send(payload)
         } else {
-            const [statusCode, payload] = await moveFunc(user, gameId);
-            return res.status(statusCode).send(payload);
+            const [statusCode, payload] = await moveFunc(user, gameId)
+            return res.status(statusCode).send(payload)
         }
     } catch (e) {
-        console.error(e);
+        console.error(e)
         return res.status(500).send('Something went wrong.')
     }
 }
@@ -556,5 +556,5 @@ module.exports = {
     botJoinTable,
     leaveTable,
     userMove,
-    moveEnum,
+    moveEnum
 }
