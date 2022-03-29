@@ -270,10 +270,8 @@ class BotPlayer {
         )
             .catch(e => {
                 console.error(`[${botPlayer.username}] Could not get move from AI server. Playing local logic...`, e.message)
-                console.log(`[${botPlayer.username}] =========> this is the moveDetails object sent: ${botPlayer.localPlayLogic(botPlayer.variant, botPlayer.game, botPlayer.hand, playOptions, moveEnum)}`)
                 return botPlayer.localPlayLogic(botPlayer.variant, botPlayer.game, botPlayer.hand, playOptions, moveEnum)
             })
-        console.log(`[${botPlayer.username}] =========< this is the moveDetails object received: ${moveDetails}`)
 
         const retObj = botMoveFunc(botPlayer, botPlayer.game._id, moveDetails.move, moveDetails.raiseAmount)
         console.info(`
