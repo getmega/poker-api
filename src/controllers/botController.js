@@ -90,13 +90,12 @@ class BotPlayer {
 
     async buyIn() {
         let buyInAmount
-        try {
-            console.debug(`[${this.username}] asking remote server for buy-in`)
-            buyInAmount = await pokerAI.getAIBuyIn(this.variant, this.game, this.username)
-        } catch (e) {
-            console.error(`[${this.username}] Caught error which contacting Python server`, e)
-            buyInAmount = this.game.maxBuyIn // basic buy in
-        }
+        console.debug(`[${this.username}] asking remote server for buy-in`)
+        buyInAmount = await pokerAI.getAIBuyIn(this.variant, this.game, this.username)
+            .catch(e => {
+                console.error(`[${this.username}] Caught error which contacting Python server`, e.message)
+                return this.game.maxBuyIn // basic buy in
+            })
         console.info(`[${this.username}] Buying in with ${buyInAmount}`)
         return buyInAmount
     }
@@ -184,12 +183,12 @@ class BotPlayer {
         }
     }
 
-    localPlayLogic(game, hand, playOptions, moveEnum) {
+    localPlayLogic(variant, game, hand, playOptions, moveEnum) {
         const moveDetails = (move, raiseAmount = 0) => ({
             move,
             raiseAmount
         })
-        switch (this.variant) {
+        switch (variant) {
             case botVariantOptions.EASY:
                 // this stupid bot always folds!
                 return moveDetails(moveEnum.FOLD)
@@ -200,7 +199,7 @@ class BotPlayer {
                     return moveDetails(move)
                 } else {
                     // when we want to raise
-                    const raiseLimit = this.botPlayer(this.game).chips - this.amountToCall(this.game)
+                    const raiseLimit = this.botPlayer(game).chips - this.amountToCall(game)
                     const raiseAmount = Math.ceil(Math.random() * raiseLimit)
                     return moveDetails(move, raiseAmount)
                 }
@@ -215,8 +214,8 @@ class BotPlayer {
                                 return moveDetails(move)
                             } else {
                                 // when we want to raise
-                                const raiseLimit = this.botPlayer(this.game).chips - this.amountToCall(this.game)
-                                const raiseAmount = Math.min(raiseLimit, Math.max(this.amountToCall(this.game), 10))
+                                const raiseLimit = this.botPlayer(game).chips - this.amountToCall(game)
+                                const raiseAmount = Math.min(raiseLimit, Math.max(this.amountToCall(game), 10))
                                 if (raiseAmount > 0) {
                                     return moveDetails(move, raiseAmount)
                                 }
@@ -238,7 +237,8 @@ class BotPlayer {
                     return playInPriorityOrder([moveEnum.CHECK, moveEnum.FOLD])
                 }
             default:
-                break
+                console.error(`[${this.username}] This variant (${variant}), is not handled. Defaulting to fold...`)
+                return moveDetails(moveEnum.FOLD)
         }
     }
 
@@ -260,19 +260,21 @@ class BotPlayer {
         }
 
         let moveDetails
-        try {
-            console.log(`[${botPlayer.username}] asking remote server for moves`)
-            moveDetails = await pokerAI.getAIMove(
-                botPlayer.variant,
-                botPlayer.game,
-                botPlayer.hand,
-                playOptions,
-                botPlayer.username
-            )
-        } catch (e) {
-            console.error(`[${botPlayer.username}] Could not get move from AI server. Playing local logic...`, e)
-            moveDetails = botPlayer.localPlayLogic(botPlayer.game, botPlayer.hand, playOptions, moveEnum)
-        }
+        console.log(`[${botPlayer.username}] asking remote server for moves`)
+        moveDetails = await pokerAI.getAIMove(
+            botPlayer.variant,
+            botPlayer.game,
+            botPlayer.hand,
+            playOptions,
+            botPlayer.username
+        )
+            .catch(e => {
+                console.error(`[${botPlayer.username}] Could not get move from AI server. Playing local logic...`, e.message)
+                console.log(`[${botPlayer.username}] =========> this is the moveDetails object sent: ${botPlayer.localPlayLogic(botPlayer.variant, botPlayer.game, botPlayer.hand, playOptions, moveEnum)}`)
+                return botPlayer.localPlayLogic(botPlayer.variant, botPlayer.game, botPlayer.hand, playOptions, moveEnum)
+            })
+        console.log(`[${botPlayer.username}] =========< this is the moveDetails object received: ${moveDetails}`)
+
         const retObj = botMoveFunc(botPlayer, botPlayer.game._id, moveDetails.move, moveDetails.raiseAmount)
         console.info(`
         [${botPlayer.username}] Executed ${moveDetails.move} (${moveDetails.raiseAmount}). hand:
