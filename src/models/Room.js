@@ -2,7 +2,8 @@ const mongoose = require('mongoose')
 const Joi = require('joi')
 const { PREFLOP } = require('../constants')
 
-const gameSchema = new mongoose.Schema({
+
+const roomSchema = new mongoose.Schema({
     players: {
         type: Array,
         required: true
@@ -96,43 +97,8 @@ const gameSchema = new mongoose.Schema({
     }
 })
 
-function validate(game) {
-    const schema = {
-        name: Joi.string()
-            .min(5)
-            .max(25),
-        maxPlayers: Joi.number()
-            .integer()
-            .min(0)
-            .max(12)
-            .required(),
-        players: Joi.array().required(),
-        maxBuyIn: Joi.number()
-            .integer()
-            .min(0)
-            .required(),
-        bigBlind: Joi.number()
-            .integer()
-            .min(0)
-            .required(),
-        smallBlind: Joi.number()
-            .integer()
-            .min(0)
-            .max(game.bigBlind - 1)
-            .required(),
-        numBots: Joi.number()
-            .integer()
-            .min(0)
-            .max(game.maxPlayers - 1)
-            .required()
-    }
-
-    return Joi.validate(game, schema)
-}
-
-const Game = mongoose.model('Game', gameSchema)
+const Room = mongoose.model('Room', roomSchema)
 
 module.exports = {
-    Game,
-    validate
+    Room
 }
