@@ -1,8 +1,7 @@
 const { PREFLOP, FLOP, TURN, RIVER, phases, DECK } = require('../constants')
 const { distributeChipsToWinners, getHandRanks } = require('./winnerService')
 const { encryptCard, decryptHand } = require('./encryptionService')
-const { Room } = require('../models/Room')
-const func = require('joi/lib/types/func')
+const { HandHistory } = require('../models/HandHistory')
 
 const getLargestBet = game => {
     if (game.bets.length === 0) {
@@ -320,42 +319,42 @@ const startNextRound = game => {
     return game
 }
 
-async function save_newroom(game) {
+async function save_handhistory(game) {
     try {
-    const room = await Room.create({
-        "players": game.players, 
-        "maxPlayers": game.maxPlayers, 
-        "name": game.name, 
-        "hand": game.hand, 
-        "maxBuyIn": game.maxBuyIn, 
-        "bigBlind": game.bigBlind,  
-        "smallBlind": game.smallBlind, 
-        "bets": game.bets, 
-        "lastToRaiseId": game.lastToRaiseId, 
-        "pot": game.pot, 
-        "playersWaiting": game.playersWaiting, 
-        "phase": game.phase, 
-        "deck": game.deck,
-        "communityCards": game.communityCards,
-        "allInHands": game.allInHands,
-        "sidePots": game.sidePots,
-        "winners": game.winners,
-        "endedByFold": game.endedByFold,
-        "numBots": game.numBots,
-        "moveHistory": game.moveHistory,
-    })
-    console.log("room saved")
+        const room = await HandHistory.create({
+            "players": game.players,
+            "maxPlayers": game.maxPlayers,
+            "name": game.name,
+            "hand": game.hand,
+            "maxBuyIn": game.maxBuyIn,
+            "bigBlind": game.bigBlind,
+            "smallBlind": game.smallBlind,
+            "bets": game.bets,
+            "lastToRaiseId": game.lastToRaiseId,
+            "pot": game.pot,
+            "playersWaiting": game.playersWaiting,
+            "phase": game.phase,
+            "deck": game.deck,
+            "communityCards": game.communityCards,
+            "allInHands": game.allInHands,
+            "sidePots": game.sidePots,
+            "winners": game.winners,
+            "endedByFold": game.endedByFold,
+            "numBots": game.numBots,
+            "moveHistory": game.moveHistory,
+        })
+        console.log("HandHistory Saved")
 
-    } catch(err) {
+    } catch (err) {
         console.error(err)
     }
-    
+
 }
 
 const resetGame = game => {
 
     // write game to a different collection
-    save_newroom(game)
+    save_handhistory(game)
 
     game.pot = 0
     game.lastToRaiseId = undefined

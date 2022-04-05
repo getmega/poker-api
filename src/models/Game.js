@@ -134,5 +134,6 @@ const Game = mongoose.model('Game', gameSchema)
 
 module.exports = {
     Game,
+    gameSchema,
     validate
 }
