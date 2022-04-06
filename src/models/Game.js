@@ -89,6 +89,10 @@ const gameSchema = new mongoose.Schema({
         type: Number,
         required: true,
         default: 0
+    },
+    moveHistory: {
+        type: Array,
+        default: []
     }
 })
 
@@ -130,5 +134,6 @@ const Game = mongoose.model('Game', gameSchema)
 
 module.exports = {
     Game,
+    gameSchema,
     validate
 }

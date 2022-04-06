@@ -307,6 +307,7 @@ const call = async (user, gameId) => {
         if (!player.chips) {
             player.lastAction = 'All-In'
             game.allInHands.push({ playerId: player._id, hand: decryptHand(player.hand) })
+            game.moveHistory.push({ playerId: player._id, username: player.username, phase: game.phase, amount: betAmount, action: 'allin' })
         } else {
             player.lastAction = 'Call'
         }
@@ -316,8 +317,10 @@ const call = async (user, gameId) => {
         if (currentBet) {
             currentBet.amount += betAmount
             game.bets.set(currentBetIndex, currentBet)
+            game.moveHistory.push({ playerId: player._id, username: player.username, phase: game.phase, amount: betAmount, action: 'call' })
         } else {
             game.bets.push({ playerId: player._id, username: player.username, amount: betAmount })
+            game.moveHistory.push({ playerId: player._id, username: player.username, phase: game.phase, amount: betAmount, action: 'call' })
         }
 
         game.pot += betAmount
@@ -363,6 +366,8 @@ const check = async (user, gameId) => {
         player.lastAction = 'Check'
         game.players.set(playerIndex, player)
 
+        game.moveHistory.push({ playerId: player._id, username: player.username, phase: game.phase, amount:0, action: 'check' })
+
         game = finishTurn(game)
         game = await game.save()
 
@@ -400,6 +405,8 @@ const fold = async (user, gameId) => {
         player.lastAction = 'Fold'
         player.hand = undefined
         game.players.set(playerIndex, player)
+
+        game.moveHistory.push({ playerId: player._id, username: player.username, phase: game.phase, amount:0, action: 'fold' })        
 
         if (game.players.filter(player => player.hand).length === 1) {
             game = finishRound(game, true)
@@ -449,12 +456,15 @@ const raise = async (user, gameId, raiseAmount) => {
         if (currentBet) {
             currentBet.amount += totalBet
             game.bets.set(currentBetIndex, currentBet)
+            
         } else {
             game.bets.push({ playerId: player._id, username: player.username, amount: totalBet })
+            game.moveHistory.push({ playerId: player._id, username: player.username, phase: game.phase, amount: totalBet, action: 'raise' })
         }
 
         if (totalBet === player.chips) {
             game.allInHands.push({ playerId: player._id, hand: decryptHand(player.hand) })
+            game.moveHistory.push({ playerId: player._id, username: player.username, phase: game.phase, amount: totalBet, action: 'allin' })
             player.lastAction = 'All-In'
         } else {
             player.lastAction = 'Raise'
