@@ -322,37 +322,34 @@ const startNextRound = game => {
 async function save_handhistory(game) {
     try {
         const room = await HandHistory.create({
-            "players": game.players,
-            "maxPlayers": game.maxPlayers,
-            "name": game.name,
-            "hand": game.hand,
-            "maxBuyIn": game.maxBuyIn,
-            "bigBlind": game.bigBlind,
-            "smallBlind": game.smallBlind,
-            "bets": game.bets,
-            "lastToRaiseId": game.lastToRaiseId,
-            "pot": game.pot,
-            "playersWaiting": game.playersWaiting,
-            "phase": game.phase,
-            "deck": game.deck,
-            "communityCards": game.communityCards,
-            "allInHands": game.allInHands,
-            "sidePots": game.sidePots,
-            "winners": game.winners,
-            "endedByFold": game.endedByFold,
-            "numBots": game.numBots,
-            "moveHistory": game.moveHistory,
+            players: game.players,
+            maxPlayers: game.maxPlayers,
+            name: game.name,
+            hand: game.hand,
+            maxBuyIn: game.maxBuyIn,
+            bigBlind: game.bigBlind,
+            smallBlind: game.smallBlind,
+            bets: game.bets,
+            lastToRaiseId: game.lastToRaiseId,
+            pot: game.pot,
+            playersWaiting: game.playersWaiting,
+            phase: game.phase,
+            deck: game.deck,
+            communityCards: game.communityCards,
+            allInHands: game.allInHands,
+            sidePots: game.sidePots,
+            winners: game.winners,
+            endedByFold: game.endedByFold,
+            numBots: game.numBots,
+            moveHistory: game.moveHistory
         })
-        console.log("HandHistory Saved")
-
+        console.log('HandHistory Saved')
     } catch (err) {
         console.error(err)
     }
-
 }
 
 const resetGame = game => {
-
     // write game to a different collection
     save_handhistory(game)
 
