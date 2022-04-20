@@ -343,7 +343,7 @@ async function save_handhistory(game) {
             numBots: game.numBots,
             moveHistory: game.moveHistory
         })
-        console.log('HandHistory Saved')
+        console.log('HandHistory Saved ', room)
     } catch (err) {
         console.error(err)
     }
