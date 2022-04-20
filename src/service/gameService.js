@@ -150,7 +150,7 @@ const reconcileAllIns = game => {
     // If there is one player remaining who is not all-in, put their hand in allInHands to show to everyone.
     if (allInCount === playerCount - 1) {
         const allInIds = game.allInHands.map(a => a.playerId)
-        const playerIndex = game.players.findIndex(p => !allInIds.includes(p._id))
+        const playerIndex = game.players.findIndex(p => p.hand && !allInIds.includes(p._id))
         const player = game.players[playerIndex]
         game.allInHands.push({ playerId: player._id, hand: decryptHand(player.hand) })
     } else if (allInCount === playerCount) {

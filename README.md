@@ -53,6 +53,21 @@ run-rs -v 5.0.0
 
 On the first run, there won't be anything in the database. Once you start adding things in the application, those collections will show up.
 
+## Deploying on GCP
+
+Make sure that you have `gcloud` CLI installed in your terminal (refer: [AppEngine Documentation](https://cloud.google.com/appengine/docs/standard/nodejs/building-app/deploying-web-service))
+
+Also make sure that `gcloud` is configured to the staging project.
+```
+gcloud config set project getmega-app
+```
+
+Now you can run the following command to deploy this on Google App Engine:
+```
+gcloud app deploy
+```
+
+
 ## How to Contribute
 
 1. Install Git on your machine.

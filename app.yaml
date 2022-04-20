@@ -1,0 +1,25 @@
+runtime: nodejs14
+
+service: poker-webui-api
+
+instance_class: F2
+
+handlers:
+  - url: .*
+    script: auto
+    secure: always
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 2
+  min_idle_instances: 1
+  max_idle_instances: 2
+  target_cpu_utilization: 0.75
+  max_concurrent_requests: 30
+  max_pending_latency: 15s
+
+env_variables:
+  mongoURI: "mongodb://megapokerbot:mega123@cluster0-shard-00-00.vpwpq.mongodb.net:27017,cluster0-shard-00-01.vpwpq.mongodb.net:27017,cluster0-shard-00-02.vpwpq.mongodb.net:27017/poker-db?replicaSet=atlas-hugr40-shard-0&ssl=true&authSource=admin"
+  jwtPrivateKey: 'z&234!jsh9,'
+  encryptionSalt: 'encryptionSalt'
+  pokerAIEndpoint: 'https://poker-ai-flask-dot-getmega-app.uc.r.appspot.com/'
