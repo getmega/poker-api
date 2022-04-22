@@ -321,7 +321,6 @@ const startNextRound = game => {
 }
 
 async function save_handhistory(game) {
-
     try {
         const room = await HandHistory.create({
             players: game.players,
