@@ -300,6 +300,7 @@ const deal = game => {
         const card2 = deck.pop()
 
         player.hand = [encryptCard(card1), encryptCard(card2)]
+        player.holeCards = [card1, card2]
 
         game.players.set(index, player)
     })
@@ -320,6 +321,7 @@ const startNextRound = game => {
 }
 
 async function save_handhistory(game) {
+
     try {
         const room = await HandHistory.create({
             players: game.players,

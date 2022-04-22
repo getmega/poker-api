@@ -63,6 +63,7 @@ const distributeChipsToWinners = (game, handRanks) => {
                 highestSidePot = amount
                 game.winners.push({
                     playerId: player._id,
+                    name: player.name,
                     amount,
                     hand,
                     handType: handTypes[getBestHand(hand, game.communityCards)] || 'HIGH CARD'
@@ -71,6 +72,7 @@ const distributeChipsToWinners = (game, handRanks) => {
                 player.chips += game.pot
                 game.winners.push({
                     playerId: player._id,
+                    name: player.name,
                     amount: game.pot,
                     hand,
                     handType: handTypes[getBestHand(hand, game.communityCards)] || 'HIGH CARD'
@@ -116,6 +118,7 @@ const distributeChipsToWinners = (game, handRanks) => {
                 game.pot -= splitAmount
                 game.winners.push({
                     playerId: player._id,
+                    name: player.name,
                     amount: splitAmount,
                     hand,
                     handType: handTypes[getBestHand(hand, game.communityCards)] || 'HIGH CARD'
