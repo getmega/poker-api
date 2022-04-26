@@ -370,6 +370,7 @@ const resetGame = game => {
         player.isBigBlind = false
         player.isSmallBlind = false
         player.hand = undefined
+        player.holeCards = undefined
         game.players.set(i, player)
     })
 
