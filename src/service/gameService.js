@@ -217,11 +217,15 @@ const resetActions = game => {
     return game
 }
 
-const finishRound = (game, endedByFold) => {
+const finishRound = async(game, endedByFold) => {
     const winningHandOrder = getHandRanks(game)
     game = distributeChipsToWinners(game, winningHandOrder)
     game = removeBankruptPlayers(game)
     game.endedByFold = !!endedByFold
+
+    // save
+    await save_handhistory(game)
+
     game = startNextRound(game)
     return game
 }
@@ -352,7 +356,6 @@ async function save_handhistory(game) {
 
 const resetGame = game => {
     // write game to a different collection
-    save_handhistory(game)
 
     game.pot = 0
     game.lastToRaiseId = undefined
