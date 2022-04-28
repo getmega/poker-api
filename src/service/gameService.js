@@ -217,7 +217,7 @@ const resetActions = game => {
     return game
 }
 
-const finishRound = async(game, endedByFold) => {
+const finishRound = async (game, endedByFold) => {
     const winningHandOrder = getHandRanks(game)
     game = distributeChipsToWinners(game, winningHandOrder)
     game = removeBankruptPlayers(game)
